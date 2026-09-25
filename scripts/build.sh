@@ -11,7 +11,10 @@ if ! command -v swiftc >/dev/null 2>&1; then
     exit 1
 fi
 
-APP=build/StillOnMac.app
+# Build outside the project folder: iCloud-synced folders like Desktop add
+# extended attributes that make codesign fail.
+STAGE="${TMPDIR:-/tmp}/stillonmac-build"
+APP="$STAGE/StillOnMac.app"
 ARCH="$(uname -m)"
 
 rm -rf "$APP"
@@ -38,14 +41,19 @@ cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp scripts/setup-power.sh "$APP/Contents/Resources/setup-power.sh"
 chmod +x "$APP/Contents/Resources/setup-power.sh"
 
+xattr -cr "$APP"
 codesign --force --sign - "$APP"
-echo "Built $APP"
+
+rm -rf build
+mkdir -p build
+ditto --norsrc --noextattr "$APP" build/StillOnMac.app
+echo "Built build/StillOnMac.app"
 
 if [[ "${1:-}" == "--install" ]]; then
     pkill -x StillOnMac 2>/dev/null || true
     sleep 1
     rm -rf /Applications/StillOnMac.app
-    cp -R "$APP" /Applications/
+    ditto --norsrc --noextattr "$APP" /Applications/StillOnMac.app
     # A rebuilt app has a new signature, so the old Accessibility grant no longer matches.
     tccutil reset Accessibility com.stillonmac.app >/dev/null 2>&1 || true
     open /Applications/StillOnMac.app
