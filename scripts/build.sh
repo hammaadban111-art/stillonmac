@@ -22,7 +22,7 @@ while IFS= read -r -d '' file; do
     SOURCES+=("$file")
 done < <(find Sources -name '*.swift' -print0)
 
-echo "Compiling for $ARCH…"
+echo "Compiling for ${ARCH}..."
 swiftc -O \
     -target "$ARCH-apple-macos13.0" \
     -framework AppKit \
