@@ -7,7 +7,29 @@ struct PanelView: View {
     let displayOff: () -> Void
     let quit: () -> Void
 
+    enum Tab {
+        case keepOn, memory
+    }
+
+    @State var tab = Tab.keepOn
+
     var body: some View {
+        VStack(spacing: 0) {
+            tabBar
+                .padding(EdgeInsets(top: 12, leading: 12, bottom: 0, trailing: 12))
+            switch tab {
+            case .keepOn:
+                keepOnTab
+            case .memory:
+                MemoryView()
+            }
+        }
+        .frame(width: 340)
+        .background(Theme.background)
+        .foregroundColor(Theme.text)
+    }
+
+    private var keepOnTab: some View {
         VStack(spacing: 0) {
             header
             if !state.helperInstalled {
@@ -29,9 +51,34 @@ struct PanelView: View {
                 .padding(.top, 12)
             footer
         }
-        .frame(width: 340)
-        .background(Theme.background)
-        .foregroundColor(Theme.text)
+    }
+
+    // MARK: Tabs
+
+    private var tabBar: some View {
+        HStack(spacing: 4) {
+            tabButton("Keep On", .keepOn)
+            tabButton("Memory", .memory)
+        }
+        .padding(3)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Theme.card))
+    }
+
+    private func tabButton(_ title: String, _ value: Tab) -> some View {
+        let selected = tab == value
+        return Button {
+            tab = value
+        } label: {
+            Text(title)
+                .font(.system(size: 12, weight: selected ? .bold : .semibold))
+                .foregroundColor(selected ? Theme.text : Theme.secondary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 28)
+                .background(RoundedRectangle(cornerRadius: 7).fill(selected ? Theme.cardBorder : Color.clear))
+                .contentShape(RoundedRectangle(cornerRadius: 7))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     // MARK: Header
@@ -51,7 +98,7 @@ struct PanelView: View {
                     .font(.system(size: 15, weight: .bold))
                 if state.keepOn, let since = state.awakeSince {
                     TimelineView(.periodic(from: Date(), by: 30)) { _ in
-                        Text("Awake 24/7 · on for \(Self.duration(since: since))")
+                        Text("Awake 24/7 · on for \(Format.duration(since: since))")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(Theme.amber)
                     }
@@ -64,16 +111,6 @@ struct PanelView: View {
             Spacer()
         }
         .padding(EdgeInsets(top: 16, leading: 16, bottom: 14, trailing: 16))
-    }
-
-    static func duration(since: Date) -> String {
-        let seconds = max(0, Int(Date().timeIntervalSince(since)))
-        let days = seconds / 86_400
-        let hours = (seconds % 86_400) / 3_600
-        let minutes = (seconds % 3_600) / 60
-        if days > 0 { return "\(days)d \(hours)h" }
-        if hours > 0 { return "\(hours)h \(minutes)m" }
-        return "\(minutes)m"
     }
 
     // MARK: Setup banner

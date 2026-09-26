@@ -1,0 +1,36 @@
+name: Build DMG
+
+on:
+  push:
+    branches: [main, claude/eloquent-maxwell-zmsskh]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build app and DMG
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/make-dmg.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: StillOnMac
+          path: build/StillOnMac.dmg
+
+      - name: Publish "latest" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest build/StillOnMac.dmg \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "StillOnMac (latest build)" \
+            --notes "Built from ${GITHUB_SHA::7} on ${GITHUB_REF_NAME}. Open the DMG, drag StillOnMac to Applications. First launch: System Settings → Privacy & Security → Open Anyway."

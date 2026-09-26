@@ -181,20 +181,11 @@ final class AppState: ObservableObject {
             setupError = "setup-power.sh is missing from the app bundle. Rebuild with scripts/build.sh."
             return
         }
-        let command = "/bin/bash \(Shell.quote(script)) \(Shell.quote(NSUserName()))"
-        let escaped = command
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-        let source = "do shell script \"\(escaped)\" with administrator privileges"
-
-        var error: NSDictionary?
-        NSAppleScript(source: source)?.executeAndReturnError(&error)
-        if let error = error {
-            let code = error[NSAppleScript.errorNumber] as? Int
-            // -128 = the user pressed Cancel.
-            setupError = code == -128 ? nil : (error[NSAppleScript.errorMessage] as? String ?? "Setup failed.")
-        } else {
+        switch AdminRunner.run("/bin/bash \(Shell.quote(script)) \(Shell.quote(NSUserName()))") {
+        case .ok, .cancelled:
             setupError = nil
+        case .failed(let message):
+            setupError = message
         }
         refreshStatus()
         if keepOn {

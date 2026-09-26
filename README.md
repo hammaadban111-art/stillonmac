@@ -10,10 +10,21 @@ Click the cup icon next to Wi-Fi to see these controls:
 | **Block Shutdown & Restart** | Cancels restart, shut down and log out requests. macOS shows *"StillOnMac interrupted restart"*. |
 | **Auto-Quit Closed Apps** | Quits an app a few seconds after you close its last window. Finder, Terminal and apps you choose are skipped. |
 | **Display Off Now** | Turns the monitor off. The Mac stays awake. |
+| **Memory tab** | What's using RAM, biggest first, in plain words: `(Emulator) qemu-system-aarch64 · 2.1 GB · running 3h 12m`. Apps are grouped with their helper processes. A stop button on every line: Quit first, Force Quit if it's ignored, and a password prompt for macOS/root processes. Critical macOS processes are locked. It only samples while the tab is open, so it costs nothing in the background. |
 
 UI design canvas: https://claude.ai/artifact/9BiapJTbJqPoRChgYNMgjL
 
-## Install (on the Mac)
+## Install from the DMG (easiest)
+
+1. Download **StillOnMac.dmg** from the [latest release](https://github.com/hammaadban111-art/stillonmac/releases/tag/latest).
+2. Open it and drag **StillOnMac** onto **Applications**.
+3. Open StillOnMac from Applications. macOS blocks the first launch because the app isn't notarized by Apple:
+   - go to **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**, or
+   - run `xattr -dr com.apple.quarantine /Applications/StillOnMac.app` and open it again.
+
+GitHub Actions builds a new DMG on every push (`.github/workflows/build.yml`). To make one yourself: `./scripts/make-dmg.sh` → `build/StillOnMac.dmg`.
+
+## Build from source (on the Mac)
 
 ```bash
 xcode-select --install                 # once, if you don't have the command line tools
@@ -69,10 +80,12 @@ Sources/StillOnMac/
   ShutdownBlocker.swift           recognises restart/shutdown/logout quit events
   AutoQuitter.swift               quits windowless apps (Accessibility API)
   Notifier.swift                  "Restart blocked" notification
+  AdminRunner.swift               runs a command as root behind the password prompt
+  Memory/                         RAM sampling, plain-words names, stopping processes
   LoginItem.swift, SystemStatus.swift, Shell.swift, Theme.swift
   Views/                          SwiftUI panel, settings, onboarding
 Resources/Info.plist
-scripts/build.sh, setup-power.sh, uninstall.sh
+scripts/build.sh, make-dmg.sh, setup-power.sh, uninstall.sh
 ```
 
 Requires macOS 13 or later.

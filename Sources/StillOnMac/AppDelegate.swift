@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
         popover.animates = true
         popover.appearance = NSAppearance(named: .darkAqua)
-        popover.contentViewController = NSHostingController(rootView: PanelView(
+        let panel = NSHostingController(rootView: PanelView(
             openSettings: { [weak self] in self?.showSettings() },
             displayOff: { [weak self] in
                 self?.popover.performClose(nil)
@@ -34,6 +34,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             quit: { [weak self] in self?.quit() }
         ).environmentObject(state))
+        // Let the popover follow the SwiftUI size when switching tabs.
+        panel.sizingOptions = .preferredContentSize
+        popover.contentViewController = panel
 
         state.$keepOn
             .receive(on: RunLoop.main)
