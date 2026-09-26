@@ -22,7 +22,7 @@ UI design canvas: https://claude.ai/artifact/9BiapJTbJqPoRChgYNMgjL
    - go to **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**, or
    - run `xattr -dr com.apple.quarantine /Applications/StillOnMac.app` and open it again.
 
-GitHub Actions builds a new DMG on every push (`.github/workflows/build.yml`). To make one yourself: `./scripts/make-dmg.sh` → `build/StillOnMac.dmg`.
+GitHub Actions builds a new DMG on every push (`.github/workflows/build.yml`). To make one yourself: `./scripts/make-dmg.sh` → `build/StillOnMac.dmg`. For the styled installer window, install dmgbuild first: `python3 -m pip install --user dmgbuild`.
 
 ## Build from source (on the Mac)
 
@@ -85,7 +85,7 @@ Sources/StillOnMac/
   LoginItem.swift, SystemStatus.swift, Shell.swift, Theme.swift
   Views/                          SwiftUI panel, settings, onboarding
 Resources/Info.plist
-scripts/build.sh, make-dmg.sh, setup-power.sh, uninstall.sh
+scripts/build.sh, make-dmg.sh, make-art.swift (icon + DMG art), dmg-settings.py, setup-power.sh, uninstall.sh
 ```
 
 Requires macOS 13 or later.

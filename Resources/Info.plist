@@ -8,6 +8,8 @@
 	<string>StillOnMac</string>
 	<key>CFBundleExecutable</key>
 	<string>StillOnMac</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.stillonmac.app</string>
 	<key>CFBundleInfoDictionaryVersion</key>

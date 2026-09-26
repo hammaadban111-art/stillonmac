@@ -17,7 +17,7 @@ STAGE="${TMPDIR:-/tmp}/stillonmac-build"
 APP="$STAGE/StillOnMac.app"
 ARCH="$(uname -m)"
 
-rm -rf "$APP"
+rm -rf "$STAGE"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 SOURCES=()
@@ -41,12 +41,26 @@ cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp scripts/setup-power.sh "$APP/Contents/Resources/setup-power.sh"
 chmod +x "$APP/Contents/Resources/setup-power.sh"
 
+# App icon and DMG background, drawn by scripts/make-art.swift.
+ART="$STAGE/art"
+if swift scripts/make-art.swift "$ART" >/dev/null \
+    && iconutil -c icns "$ART/AppIcon.iconset" -o "$APP/Contents/Resources/AppIcon.icns"; then
+    tiffutil -cathidpicheck "$ART/dmg-background.png" "$ART/dmg-background@2x.png" \
+        -out "$ART/dmg-background.tiff" >/dev/null 2>&1 || cp "$ART/dmg-background.png" "$ART/dmg-background.tiff"
+    echo "App icon added"
+else
+    echo "warning: couldn't draw the app icon; building without it" >&2
+fi
+
 xattr -cr "$APP"
 codesign --force --sign - "$APP"
 
 rm -rf build
 mkdir -p build
 ditto --norsrc --noextattr "$APP" build/StillOnMac.app
+if [[ -f "$ART/dmg-background.tiff" ]]; then
+    cp "$ART/dmg-background.tiff" build/dmg-background.tiff
+fi
 echo "Built build/StillOnMac.app"
 
 if [[ "${1:-}" == "--install" ]]; then
